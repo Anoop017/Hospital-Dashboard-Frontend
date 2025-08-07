@@ -12,7 +12,9 @@ const Register = () => {
     role: 'patient',
     phone: '',
     dateOfBirth: '',
-    gender: 'male'
+    gender: 'male',
+    licenseNumber: '',
+    specialization: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -52,7 +54,10 @@ const Register = () => {
         dateOfBirth: formData.dateOfBirth,
         gender: formData.gender
       }
-
+      if (formData.role === 'doctor') {
+        userData.licenseNumber = formData.licenseNumber;
+        userData.specialization = formData.specialization;
+      }
       await register(userData)
       navigate('/dashboard')
     } catch (error) {
@@ -130,6 +135,40 @@ const Register = () => {
                 <option value="doctor">Doctor</option>
               </select>
             </div>
+            {formData.role === 'doctor' && (
+              <>
+                <div>
+                  <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    License Number
+                  </label>
+                  <input
+                    id="licenseNumber"
+                    name="licenseNumber"
+                    type="text"
+                    required={formData.role === 'doctor'}
+                    value={formData.licenseNumber}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="Enter your license number"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Specialization
+                  </label>
+                  <input
+                    id="specialization"
+                    name="specialization"
+                    type="text"
+                    required={formData.role === 'doctor'}
+                    value={formData.specialization}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="Enter your specialization"
+                  />
+                </div>
+              </>
+            )}
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
