@@ -44,6 +44,12 @@ const Navbar = () => {
       );
     }
 
+    if (user.role === 'doctor') {
+      links.push(
+        { to: '/doctor-appointments', label: 'My Appointments', icon: Calendar }
+      );
+    }
+
     if (user.role === 'doctor' || user.role === 'admin') {
       // Removed 'Patients' for more space
       // links.push({ to: '/patients', label: 'Patients', icon: Users });
@@ -51,7 +57,7 @@ const Navbar = () => {
 
     if (user.role === 'admin') {
       links.push(
-        // Removed 'Manage Users' and 'Manage Patients' for more space
+        { to: '/manage-users', label: 'Manage Users', icon: Users },
         { to: '/manage-doctors', label: 'Manage Doctors', icon: Stethoscope },
         { to: '/manage-appointments', label: 'Manage Appointments', icon: Calendar },
         { to: '/system-stats', label: 'System Stats', icon: BarChart3 }

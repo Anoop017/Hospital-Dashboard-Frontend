@@ -156,16 +156,32 @@ const Register = () => {
                   <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Specialization
                   </label>
-                  <input
+                  <select
                     id="specialization"
                     name="specialization"
-                    type="text"
                     required={formData.role === 'doctor'}
                     value={formData.specialization}
                     onChange={handleChange}
                     className="input-field"
-                    placeholder="Enter your specialization"
-                  />
+                  >
+                    <option value="">Select specialization</option>
+                    <option value="Cardiology">Cardiology (Heart)</option>
+                    <option value="Dermatology">Dermatology (Skin)</option>
+                    <option value="ENT">ENT (Ear, Nose, Throat)</option>
+                    <option value="Neurology">Neurology (Brain & Nervous System)</option>
+                    <option value="Orthopedics">Orthopedics (Bones & Joints)</option>
+                    <option value="Pediatrics">Pediatrics (Children)</option>
+                    <option value="Psychiatry">Psychiatry (Mental Health)</option>
+                    <option value="Oncology">Oncology (Cancer)</option>
+                    <option value="Gynecology">Gynecology (Women's Health)</option>
+                    <option value="Urology">Urology (Urinary System)</option>
+                    <option value="Ophthalmology">Ophthalmology (Eye)</option>
+                    <option value="General Medicine">General Medicine</option>
+                    <option value="Emergency Medicine">Emergency Medicine</option>
+                    <option value="Radiology">Radiology (Imaging)</option>
+                    <option value="Anesthesiology">Anesthesiology</option>
+                    <option value="Pathology">Pathology (Lab Medicine)</option>
+                  </select>
                 </div>
               </>
             )}

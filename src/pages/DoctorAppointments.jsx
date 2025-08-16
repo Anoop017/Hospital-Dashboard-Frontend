@@ -1,27 +1,26 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, User, CheckCircle, XCircle, Edit, Eye, Trash2, Filter } from 'lucide-react'
+import { Calendar, Clock, User, CheckCircle, XCircle, Edit, Eye } from 'lucide-react'
 import axios from 'axios'
+import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
 
-const ManageAppointments = () => {
+const DoctorAppointments = () => {
+  const { user } = useAuth()
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
   const [filterStatus, setFilterStatus] = useState('')
-  const [filterDoctor, setFilterDoctor] = useState('')
-  const [doctors, setDoctors] = useState([])
 
   useEffect(() => {
     fetchAppointments()
-    fetchDoctors()
   }, [])
 
   const fetchAppointments = async () => {
     try {
-      const response = await axios.get('/api/appointments')
+      const response = await axios.get('/api/appointments/doctor')
       setAppointments(response.data)
     } catch (error) {
       console.error('Error fetching appointments:', error)
@@ -31,37 +30,13 @@ const ManageAppointments = () => {
     }
   }
 
-  const fetchDoctors = async () => {
-    try {
-      const response = await axios.get('/api/doctors')
-      setDoctors(response.data)
-    } catch (error) {
-      console.error('Error fetching doctors:', error)
-    }
-  }
-
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {
       await axios.put(`/api/appointments/${appointmentId}`, { status: newStatus })
       toast.success(`Appointment ${newStatus} successfully`)
-      fetchAppointments()
+      fetchAppointments() // Refresh the list
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to update appointment'
-      toast.error(message)
-    }
-  }
-
-  const handleDeleteAppointment = async (appointmentId) => {
-    if (!window.confirm('Are you sure you want to delete this appointment?')) {
-      return
-    }
-
-    try {
-      await axios.delete(`/api/appointments/${appointmentId}`)
-      toast.success('Appointment deleted successfully')
-      fetchAppointments()
-    } catch (error) {
-      const message = error.response?.data?.message || 'Failed to delete appointment'
       toast.error(message)
     }
   }
@@ -90,11 +65,9 @@ const ManageAppointments = () => {
     }
   }
 
-  const filteredAppointments = appointments.filter(appointment => {
-    const matchesStatus = !filterStatus || appointment.status === filterStatus
-    const matchesDoctor = !filterDoctor || appointment.doctor?._id === filterDoctor
-    return matchesStatus && matchesDoctor
-  })
+  const filteredAppointments = appointments.filter(appointment => 
+    !filterStatus || appointment.status === filterStatus
+  )
 
   if (loading) {
     return (
@@ -112,68 +85,36 @@ const ManageAppointments = () => {
         transition={{ duration: 0.5 }}
       >
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Manage Appointments
+          My Appointments
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          View and manage all appointments in the system
+          Manage and view all your patient appointments
         </p>
       </motion.div>
 
-      {/* Filters */}
+      {/* Filter */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
         className="card p-6"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Filter by Status
-            </label>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="input-field"
-            >
-              <option value="">All Statuses</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="no-show">No Show</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Filter by Doctor
-            </label>
-            <select
-              value={filterDoctor}
-              onChange={(e) => setFilterDoctor(e.target.value)}
-              className="input-field"
-            >
-              <option value="">All Doctors</option>
-              {doctors.map(doctor => (
-                <option key={doctor._id} value={doctor._id}>
-                  Dr. {doctor.user?.name} - {doctor.specialization}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-end">
-            <button
-              onClick={() => {
-                setFilterStatus('')
-                setFilterDoctor('')
-              }}
-              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Clear Filters
-            </button>
-          </div>
+        <div className="flex items-center space-x-4">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Filter by Status:
+          </label>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="input-field"
+          >
+            <option value="">All Appointments</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="no-show">No Show</option>
+          </select>
         </div>
       </motion.div>
 
@@ -199,16 +140,13 @@ const ManageAppointments = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {appointment.patient?.user?.name} → Dr. {appointment.doctor?.user?.name}
+                    {appointment.patient?.user?.name}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {new Date(appointment.appointmentDate).toLocaleDateString()} at {appointment.appointmentTime}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Reason: {appointment.reason}
-                  </p>
-                  <p className="text-sm text-primary-600 dark:text-primary-400">
-                    {appointment.doctor?.specialization}
                   </p>
                 </div>
               </div>
@@ -239,14 +177,6 @@ const ManageAppointments = () => {
                     title="Edit Appointment"
                   >
                     <Edit className="w-4 h-4" />
-                  </button>
-
-                  <button
-                    onClick={() => handleDeleteAppointment(appointment._id)}
-                    className="p-2 text-red-400 hover:text-red-600 dark:hover:text-red-300"
-                    title="Delete Appointment"
-                  >
-                    <Trash2 className="w-4 h-4" />
                   </button>
 
                   {appointment.status === 'scheduled' && (
@@ -296,7 +226,7 @@ const ManageAppointments = () => {
               No appointments found
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              {filterStatus || filterDoctor ? 'No appointments match your filters.' : 'No appointments in the system.'}
+              {filterStatus ? `No ${filterStatus} appointments.` : 'You have no appointments scheduled.'}
             </p>
           </motion.div>
         )}
@@ -352,20 +282,6 @@ const ViewAppointmentModal = ({ appointment, onClose }) => {
                 Patient Name
               </label>
               <p className="text-gray-900 dark:text-white">{appointment.patient?.user?.name}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Doctor Name
-              </label>
-              <p className="text-gray-900 dark:text-white">Dr. {appointment.doctor?.user?.name}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Specialization
-              </label>
-              <p className="text-gray-900 dark:text-white">{appointment.doctor?.specialization}</p>
             </div>
 
             <div>
@@ -553,4 +469,4 @@ const EditAppointmentModal = ({ appointment, onClose, onSave }) => {
   )
 }
 
-export default ManageAppointments 
+export default DoctorAppointments

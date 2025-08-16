@@ -10,6 +10,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import EditProfile from './pages/EditProfile'
 import MyAppointments from './pages/MyAppointments'
+import DoctorAppointments from './pages/DoctorAppointments'
 import ViewDoctors from './pages/ViewDoctors'
 import Patients from './pages/Patients'
 import ManageUsers from './pages/admin/ManageUsers'
@@ -46,6 +47,12 @@ function App() {
               <Route path="/my-appointments" element={
                 <ProtectedRoute allowedRoles={['patient']}>
                   <MyAppointments />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/doctor-appointments" element={
+                <ProtectedRoute allowedRoles={['doctor']}>
+                  <DoctorAppointments />
                 </ProtectedRoute>
               } />
               

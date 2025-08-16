@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Stethoscope, Phone, MapPin, Clock, Star, Search } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Stethoscope, Phone, MapPin, Clock, Star, Search, Calendar } from 'lucide-react'
 import axios from 'axios'
+import { useAuth } from '../contexts/AuthContext'
+import BookAppointment from './BookAppointment'
 
 const ViewDoctors = () => {
+  const { user } = useAuth()
   const [doctors, setDoctors] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSpecialization, setSelectedSpecialization] = useState('')
+  const [selectedDoctor, setSelectedDoctor] = useState(null)
+  const [showBookingModal, setShowBookingModal] = useState(false)
 
   useEffect(() => {
     fetchDoctors()
@@ -32,6 +37,15 @@ const ViewDoctors = () => {
   })
 
   const specializations = [...new Set(doctors.map(doctor => doctor.specialization))]
+
+  const handleBookAppointment = (doctor) => {
+    setSelectedDoctor(doctor)
+    setShowBookingModal(true)
+  }
+
+  const handleBookingSuccess = () => {
+    // Optionally refresh doctors data or show success message
+  }
 
   if (loading) {
     return (
@@ -165,6 +179,19 @@ const ViewDoctors = () => {
                     {doctor.isAvailable ? 'Available' : 'Unavailable'}
                   </span>
                 </div>
+
+                {/* Book Appointment Button - Only show for patients */}
+                {user?.role === 'patient' && doctor.isAvailable && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => handleBookAppointment(doctor)}
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      <span>Book Appointment</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -187,6 +214,20 @@ const ViewDoctors = () => {
           </p>
         </motion.div>
       )}
+
+      {/* Booking Modal */}
+      <AnimatePresence>
+        {showBookingModal && selectedDoctor && (
+          <BookAppointment
+            doctor={selectedDoctor}
+            onClose={() => {
+              setShowBookingModal(false)
+              setSelectedDoctor(null)
+            }}
+            onSuccess={handleBookingSuccess}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
