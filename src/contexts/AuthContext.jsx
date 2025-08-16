@@ -17,8 +17,23 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   // Configure axios defaults
-  axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+  axios.defaults.baseURL = API_BASE_URL
   axios.defaults.withCredentials = true
+
+  // Add request interceptor to handle token from localStorage if needed
+  axios.interceptors.request.use(
+    (config) => {
+      const token = localStorage.getItem('token')
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+      return config
+    },
+    (error) => {
+      return Promise.reject(error)
+    }
+  )
 
   useEffect(() => {
     checkAuthStatus()
@@ -28,8 +43,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.get('/api/auth/profile')
       setUser(response.data.user)
+      // Store token in localStorage for fallback
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token)
+      }
     } catch (error) {
       console.log('Not authenticated')
+      localStorage.removeItem('token')
     } finally {
       setLoading(false)
     }
@@ -39,6 +59,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post('/api/auth/login', { email, password })
       setUser(response.data)
+      // Store token in localStorage for fallback
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token)
+      }
       toast.success('Login successful!')
       return response.data
     } catch (error) {
@@ -52,6 +76,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post('/api/auth/register', userData)
       setUser(response.data)
+      // Store token in localStorage for fallback
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token)
+      }
       toast.success('Registration successful!')
       return response.data
     } catch (error) {
@@ -65,9 +93,13 @@ export const AuthProvider = ({ children }) => {
     try {
       await axios.post('/api/auth/logout')
       setUser(null)
+      localStorage.removeItem('token')
       toast.success('Logged out successfully')
     } catch (error) {
       console.error('Logout error:', error)
+      // Clear local state even if server logout fails
+      setUser(null)
+      localStorage.removeItem('token')
     }
   }
 
